@@ -17,6 +17,44 @@ import java.util.concurrent.TimeUnit;
  */
 public final class CommandHandler implements GpioPinListenerDigital, ActionListener{
 
+    public class GarageStatus{
+
+        private boolean isGarageClosed;
+
+        private String openTime;
+        private User blame;
+
+        public GarageStatus(boolean isGarageClosed, String openTime, User blame){
+            this.isGarageClosed = isGarageClosed;
+            this.openTime = openTime;
+            this.blame = blame;
+        }
+
+        public boolean isGarageClosed() {
+            return isGarageClosed;
+        }
+
+        public void setGarageClosed(boolean garageClosed) {
+            isGarageClosed = garageClosed;
+        }
+
+        public String getOpenTime() {
+            return openTime;
+        }
+
+        public void setOpenTime(String openTime) {
+            this.openTime = openTime;
+        }
+
+        public User getBlame() {
+            return blame;
+        }
+
+        public void setBlame(User blame) {
+            this.blame = blame;
+        }
+    }
+
     private class DoorTimer extends Timer{
 
         private final int MAX_REPEATS_BEFORE_NOTIFY_ALL = 1;
@@ -95,6 +133,7 @@ public final class CommandHandler implements GpioPinListenerDigital, ActionListe
         garageDoorTimeout = new DoorTimer(MINUTES_TIL_NOTIFY*1000*60, this);
 
         garagePositionSensorPin.addListener(this);
+        garagePositionSensorPin.setDebounce(1000);
     }
 
     private void setupGPIO(){
@@ -141,10 +180,14 @@ public final class CommandHandler implements GpioPinListenerDigital, ActionListe
     }
 
     /**
-     * @return "closed" or "open"
+     * @return GarageStatus information on door
      */
-    public String garageStatus(){
-        return isGarageDoorClosed() ? "CLOSED" : "OPEN";
+    public GarageStatus garageStatus(){
+        if(!isGarageDoorClosed()) {
+            return new GarageStatus(false, garageDoorTimeout.getLastOpenedTime(), garageDoorTimeout.getLastUser());
+        }else{
+            return new GarageStatus(true, "", null);
+        }
     }
 
     /**

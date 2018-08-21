@@ -54,17 +54,31 @@ public class User {
         }else if(msg.equals("gd open") || msg.equals("open garage door")){
             msgBack = Main.commandHandler.openGarage(this) ? "Opening garage door.." : "Garage door ALREADY is open..";
             numberOpens++;
+
         }else if(msg.equals("gd close") || msg.equals("close garage door")){
             msgBack = Main.commandHandler.closeGarage() ? "Closing garage door.." : "Garage door ALREADY is closed..";
             numberCloses++;
+
         }else if(msg.equals("gd toggle") || msg.equals("toggle garage door")){
             msgBack = Main.commandHandler.isGarageDoorClosed() ? "Opening garage door.." : "Closing garage door..";
             Main.commandHandler.toggleGarage(this);
             numberToggles++;
+
         }else if(msg.equals("gd status") || msg.equals("status garage door") || msg.equals("status of garage door")){
             numberStatus++;
-            msgBack = "Garage door is currently: "+Main.commandHandler.garageStatus()+".";
-
+            CommandHandler.GarageStatus gs = Main.commandHandler.garageStatus();
+            if(gs.isGarageClosed()){
+                msgBack = "Garage door is currently: CLOSED.";
+            }else{
+                msgBack = "Garage door is currently: OPEN.\n\n"+
+                            "Garage was opened at "+gs.getOpenTime();
+                User u = gs.getBlame();
+                if(u != null){
+                    msgBack += " by "+u.getNumber();
+                }else{
+                    msgBack += " manually";
+                }
+            }
 
         }else if(isAdmin()) {
 

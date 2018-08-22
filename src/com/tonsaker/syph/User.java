@@ -13,17 +13,22 @@ import java.util.Iterator;
  */
 public class User {
 
-    public static String usersSavePath = "/home/pi/ShutYourPiHole/users/";
+    public static final String usersSavePath = "/home/pi/ShutYourPiHole/users/";
 
-    //TODO Save data to file
+    @Expose private String lastUsedVersion = "";
+
     @Expose private int numberOpens;
     @Expose private int numberCloses;
     @Expose private int numberToggles;
     @Expose private int numberStatus;
+    @Expose private int numberMutes;
+    @Expose private int numberWarningsChanges;
     @Expose private int numberAdminsUsages;
 
+    @Expose private boolean isMute;
+
     @Expose private boolean isAdmin;
-    @Expose private String number;
+    @Expose private String number = "";
 
     public User(String number, boolean isAdmin){
         this.number = number;
@@ -45,7 +50,9 @@ public class User {
                     "\"gd open\" - Opens garage\n" +
                     "\"gd close\" - Closes garage\n" +
                     "\"gd toggle\" - Toggles garage position\n" +
-                    "\"gd status\" - Returns position of garage";
+                    "\"gd status\" - Returns position of garage\n" +
+                    "\"gd mute\" - Mutes GD Open Warnings Until garage is closed\n" +
+                    "\"gd warnings on/off\" - Turns on/off gd warnings for yourself";
 
             if(isAdmin()){
                     msgBack += "\n\"admin add +1##########\"\n" +
@@ -64,22 +71,33 @@ public class User {
             Main.commandHandler.toggleGarage(this);
             numberToggles++;
 
-        }else if(msg.equals("gd status") || msg.equals("status garage door") || msg.equals("status of garage door")){
-            numberStatus++;
+        }else if(msg.equals("gd status") || msg.equals("status garage door") || msg.equals("status of garage door")) {
             CommandHandler.GarageStatus gs = Main.commandHandler.garageStatus();
-            if(gs.isGarageClosed()){
+            if (gs.isGarageClosed()) {
                 msgBack = "Garage door is currently: CLOSED.";
-            }else{
-                msgBack = "Garage door is currently: OPEN.\n\n"+
-                            "Garage was opened at "+gs.getOpenTime();
+            } else {
+                msgBack = "Garage door is currently: OPEN.\n\n" +
+                        "Garage was opened at " + gs.getOpenTime();
                 User u = gs.getBlame();
-                if(u != null){
-                    msgBack += " by "+u.getNumber();
-                }else{
+                if (u != null) {
+                    msgBack += " by " + u.getNumber();
+                } else {
                     msgBack += " manually";
                 }
             }
-
+            numberStatus++;
+        }else if(msg.equals("gd mute")) {
+            msgBack = Main.commandHandler.mute() ? "Garage door warning notifications muted until garage door closed" :
+                    "Cannot mute notifications while garage door is closed";
+            numberMutes++;
+        }else if(msg.equals("gd warnings on")){
+            this.isMute = true;
+            msgBack = "Garage door warnings = ON";
+            numberWarningsChanges++;
+        }else if(msg.equals("gd warnings off")){
+            this.isMute = false;
+            msgBack = "Garage door warnings = OFF";
+            numberWarningsChanges++;
         }else if(isAdmin()) {
 
             if(msg.contains("admin add ")){
@@ -210,11 +228,23 @@ public class User {
         return "An error has occurred!";
     }
 
+    public String getLastUsedVersion(){
+        return lastUsedVersion;
+    }
+
+    public void setLastUsedVersion(String version){
+        this.lastUsedVersion = version;
+    }
+
     public String getNumber(){
         return number;
     }
 
     public boolean isAdmin(){
         return isAdmin;
+    }
+
+    public boolean isMute(){
+        return isMute;
     }
 }

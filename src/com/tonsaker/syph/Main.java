@@ -17,12 +17,19 @@ import java.util.Iterator;
 /**
  * Created by Markus Tonsaker on 2018-01-05.
  *
- * in Terminal type ngrog http 80
- *
  */
 public class Main{
 
-    public static boolean debug;
+    //Change every roll-out of new version! Informs all users.
+    private static final String VERSION = "1.1";
+    private static final String CHANGELOG = "ShutYourPiHole has updated to Version 1.1\n\n" +
+                                            "Changelog:\n" +
+                                            "Added new command GD mute.\n" +
+                                            "Added new command GD warnings off/on.\n" +
+                                            "Added time and who info to \"GD status\" command.\n" +
+                                            "Added this changelog for new versions";
+
+    static boolean debug;
 
     private static String accountSID;
     private static String apiKey;
@@ -30,9 +37,9 @@ public class Main{
     private static String outboundNumber;
     private static String masterNumber;
 
-    protected static CommandHandler commandHandler;
+    static CommandHandler commandHandler;
 
-    public static ArrayList<User> users = new ArrayList<>();
+    static ArrayList<User> users = new ArrayList<>();
 
     /**
      *
@@ -48,7 +55,7 @@ public class Main{
         //if(args[5] != null) debug = args[5].equals("debug"); else debug = false;
 
         System.out.println("*** Initializing.. *******************************");
-        System.out.println("VERSION 1.0");
+        System.out.println("VERSION "+VERSION);
         System.out.println("SuperAdmin number = "+masterNumber);
         System.out.println("Outbound number = "+outboundNumber);
         System.out.println("Account SID = [HIDDEN]");
@@ -59,6 +66,20 @@ public class Main{
         new Main();
         commandHandler = new CommandHandler();
         sendSMS(masterNumber, "ShutYourPiHole has started successfully!");
+
+        //Update user's version
+        for(User u : users){
+            if(u.getLastUsedVersion() == null || !u.getLastUsedVersion().equals(VERSION)){
+                sendSMS(u.getNumber(), CHANGELOG);
+                u.setLastUsedVersion(VERSION);
+                try{
+                    u.save();
+                }catch (Exception e){
+                    e.printStackTrace();
+                    Console.printError("ERROR: Could not update user version!!!");
+                }
+            }
+        }
     }
 
     public Main(){
@@ -119,8 +140,12 @@ public class Main{
     }
 
     public static void sendSMSAll(String body){
+        Main.sendSMSAll(body, true);
+    }
+
+    public static void sendSMSAll(String body, boolean ignoreMute){
         users.forEach((temp) -> {
-            sendSMS(temp.getNumber(), body);
+            if(ignoreMute || !temp.isMute()) sendSMS(temp.getNumber(), body);
         });
     }
 }

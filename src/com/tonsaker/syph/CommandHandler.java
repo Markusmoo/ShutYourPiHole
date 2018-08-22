@@ -127,6 +127,8 @@ public final class CommandHandler implements GpioPinListenerDigital, ActionListe
 
     private DoorTimer garageDoorTimeout;
 
+    private boolean isMute;
+
     public CommandHandler(){
         setupGPIO();
 
@@ -215,6 +217,20 @@ public final class CommandHandler implements GpioPinListenerDigital, ActionListe
         Console.println("Setting blame to "+user.getNumber());
     }
 
+    public boolean mute(){
+        if(isGarageDoorClosed()) return false;
+        setMute(true);
+        return true;
+    }
+
+    private void setMute(boolean mute){
+        isMute = mute;
+    }
+
+    public boolean isMute(){
+        return isMute;
+    }
+
     @Override
     public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent e) {
         if(isGarageDoorClosed()){
@@ -226,11 +242,12 @@ public final class CommandHandler implements GpioPinListenerDigital, ActionListe
 
             Console.println("Garage opened..");
         }
+        setMute(false);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if(e.getSource().equals(garageDoorTimeout)){
+        if(!isMute() && e.getSource().equals(garageDoorTimeout)){
             User lastUser = garageDoorTimeout.getLastUser();
 
             String consoleText = "Garage door left open for "+garageDoorTimeout.getElapsedTimeMins();
@@ -244,8 +261,8 @@ public final class CommandHandler implements GpioPinListenerDigital, ActionListe
 
                 Main.sendSMSAll("Hey!! The garage door was opened " + byUserString +
                         garageDoorTimeout.getElapsedTimeMins() + " ago.\n\n" +
-                        "The door was initially opened at " + garageDoorTimeout.getLastOpenedTime());
-            }else{
+                        "The door was initially opened at " + garageDoorTimeout.getLastOpenedTime(), false);
+            }else if(!lastUser.isMute()){
                 Main.sendSMS(lastUser.getNumber(), "Hey!! The garage door was opened by you " +
                         garageDoorTimeout.getElapsedTimeMins() + " ago.\n\n" +
                         "The door was initially opened at " + garageDoorTimeout.getLastOpenedTime());

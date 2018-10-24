@@ -1,6 +1,27 @@
 # ShutYourPiHole
 A garage door controller/monitor to be used with a Raspberry Pi.
 
+## What does it do?
+
+ShutYourPiHole monitors the garage door position. If the garage door has been left open for over an hour, it sends a text message to the last person to use the garage door. If garage door is still not closed after 2 hours, it sends a text message to all authorized users. 
+
+ShutYourPiHole also allows users to remote control the garage door with their mobile phone via SMS.
+
+### Commands
+
+User Commands:
+* GD Open - Opens garage door
+* GD Close - Closes garage door
+* GD Toggle - Toggles garage door position
+* GD Status - Returns what position garage door is in
+* GD Mute - Mutes garage door left open warnings until garage door is reopened
+* GD Warnings Off - Turns off garage door warnings for yourself
+* GD Warnings On - Turns on garage door warnings for yourself
+
+Admin Commands:
+* Admin add +1########## - Authorizes phone number to use garage door
+* Admin remove +1########## - Deauthorizes phone number from using garage door
+
 ### Materials Needed
 
 * Raspberry Pi Zero W
@@ -12,7 +33,7 @@ A garage door controller/monitor to be used with a Raspberry Pi.
 1. Create a file on the raspberry pi named run.sh with the text:
 
   #!/bin/sh
-
+  
   sudo java -Dpi4j.linking=dynamic -jar ShutYourPiHole.jar [INSERT ACCOUNT SID] [INSERT API SID] [INSERT API SECRET] [INSERT TWILIO PHONE NUMBER] [INSERT MASTER PHONE NUMBER] 
 
 2. Wire relay to garage door with the input coil across WiringPi pin 26.

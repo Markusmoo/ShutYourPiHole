@@ -90,7 +90,7 @@ public class User {
             msgBack = Main.commandHandler.mute() ? "Garage door warning notifications muted until garage door closed" :
                     "Cannot mute notifications while garage door is closed";
             numberMutes++;
-        }else if(msg.equals("gd warnings on")){
+        }else if(msg.equals("gd warnings on")){ //TODO Fix warning mute
             this.isMute = true;
             msgBack = "Garage door warnings = ON";
             numberWarningsChanges++;
